@@ -4,12 +4,13 @@
     box-sizing: border-box;
     font-family: Arial, sans-serif;
 }
-body {
-    background: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8NkostIkdArGJjHvOpRD6SrmFQxxFqn1cYw&s') no-repeat center center/cover;
+ body {
+    background: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS7qS1289n56ZLX24P_mBwRZv2LwVZemELQRg&s') no-repeat center center/cover;
     height: 100vh;
-    display: flex;
+    display: flex ;
     justify-content: center;
     align-items: center;
+    background-size: contain;
 }
 .login-container {
     background: rgba(4, 82, 240, 0.2);
