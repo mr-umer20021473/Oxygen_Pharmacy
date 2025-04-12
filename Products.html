@@ -38,7 +38,7 @@
         </ul>
 
         <ul class="logout-mode">
-            <li><a href="login.html">
+            <li><a href="login.html" id="logoutBtn">
                 <i class="uil uil-signout"></i>
                 <span class="link-name">Logout</span>
             </a></li>
@@ -106,6 +106,10 @@
     <script>
         const API_URL = "http://localhost:3000/api/products";
 const token = localStorage.getItem('token');
+
+if (!token) {
+        window.location.href = "login.html";
+    }
 
 const searchInput = document.getElementById("searchInput");
 const sortBySelect = document.getElementById("sortBy");
@@ -290,6 +294,15 @@ async function fetchMedicines() {
                 }
             }
         }
+
+
+        const logoutBtn = document.getElementById("logoutBtn");
+       //logout
+    logoutBtn.addEventListener("click", function (e) {
+        e.preventDefault(); 
+        localStorage.removeItem("token"); 
+        window.location.href = "login.html"; 
+    });
     </script>
 </body>
 </html>

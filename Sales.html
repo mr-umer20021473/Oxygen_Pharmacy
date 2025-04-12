@@ -40,10 +40,12 @@
             </ul>
 
             <ul class="logout-mode">
-                <li><a href="login.html">
+                <li>
+                    <a href="#" id="logoutBtn">
                         <i class="uil uil-signout"></i>
                         <span class="link-name">Logout</span>
-                    </a></li>
+                    </a>
+                </li>
             </ul>
         </div>
     </nav>
@@ -88,6 +90,10 @@
         const API_URL = "http://localhost:3000/api";
         let medicinesList = [];
         const token = localStorage.getItem('token');
+
+        if (!token) {
+        window.location.href = "login.html";
+    }
     
         const dropdown = document.getElementById("medicineDropdown");
         const quantityInput = document.getElementById("medQuantity");
@@ -249,6 +255,16 @@
     
         fetchMedicinesDropdown();
         fetchMedicinesTable();
+
+
+        //logout
+        const logoutBtn = document.getElementById("logoutBtn");
+
+    logoutBtn.addEventListener("click", function (e) {
+        e.preventDefault(); 
+        localStorage.removeItem("token"); 
+        window.location.href = "login.html"; 
+    });
     </script>
     
 

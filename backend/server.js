@@ -5,6 +5,7 @@ import cors from 'cors';
 import userRouter from './routes/user.routes.js'
 import productRouter from './routes/product.routes.js'
 import salesRouter from './routes/sales.routes.js'
+import statsRouter from './routes/stats.routes.js'
 
 
 dotenv.config();
@@ -20,6 +21,7 @@ app.use(express.json());
 app.use('/api/users',userRouter)
 app.use('/api/products',productRouter)
 app.use('/api/sales',salesRouter)
+app.use('/api/stats',statsRouter)
 
 
 app.listen(port,()=> console.log(`Server Running on port ${port}`))
