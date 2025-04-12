@@ -11,16 +11,55 @@
 
     <div class="login-container">
         <h2>Sign-Up</h2>
-        <form action="login.html">
-            <input type="text" placeholder="Username" required>
-            <input type="email" placeholder="Email" required >
-            <input type="password" placeholder="Password" required >
-            <input type="password" placeholder="Confirm Password" required >
+        <form id="signupForm" action="login.html">
+            <input id="name" type="text" placeholder="Name" required>
+            <input id="email" type="email" placeholder="Email" required >
+            <input id="password" type="password" placeholder="Password" required >
+            <input id="confirmPassword" type="password" placeholder="Confirm Password" required >
             <button type="submit">Signup</button>
         </form>
         <span  >Already have account ? <a href="login.html" >SignIn Now </a></span>
 
     </div>
+
+    <script>
+        document.getElementById('signupForm').addEventListener('submit', async function (e) {
+            e.preventDefault(); 
+
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if(password !== confirmPassword){
+                alert('Password and Confirm Password should match')
+                return
+            }
+
+
+            try {
+                const response = await fetch('http://localhost:3000/api/users/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name,email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok ) {
+                    alert("User Registered Successfully")
+                    window.location.href = 'login.html';
+                } else {
+                    alert(data.message || 'Registration failed');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                alert('Something went wrong. Please try again later.');
+            }
+        });
+    </script>
 
 </body>
 </html>
