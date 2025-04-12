@@ -21,16 +21,30 @@ export const addProduct = async (req,res) =>{
 
 }
 
-export const getProducts = async(req,res) =>{
-    try{
-        const products = await Products.find()
-        res.json(products)
+export const getProducts = async (req, res) => {
+    try {
+        const { sortBy = 'name', sortType = 'asc', search = '' } = req.query;
 
-    }catch(error){
-        res.status(500).json({message:error.message})
+        const searchFilter = search
+            ? {
+                  $or: [
+                      { name: { $regex: search, $options: 'i' } },
 
+                  ],
+              }
+            : {};
+
+        const sortOrder = sortType === 'desc' ? -1 : 1;
+        const sortOptions = { [sortBy]: sortOrder };
+
+        const products = await Products.find(searchFilter).sort(sortOptions);
+
+        res.json(products);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
-}
+};
+
 
 export const getProductById = async (req, res) => {
     try {

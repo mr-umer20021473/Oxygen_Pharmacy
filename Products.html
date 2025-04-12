@@ -67,6 +67,25 @@
 
         <div class="table-container">
             <h2>Inventory</h2>
+        
+            <div class="sort-controls">
+                <label for="sortBy">Sort By:</label>
+                <select id="sortBy">
+                    <option value="name">Name</option>
+                    <option value="expiry">Expiry</option>
+                    <option value="stock">Stock</option>
+                    <option value="price">Price</option>
+                </select>
+        
+                <label for="sortType">Sort Type:</label>
+                <select id="sortType">
+                    <option value="asc">Asc</option>
+                    <option value="desc">Desc</option>
+                </select>
+            </div>
+            <br/>
+            
+        
             <table>
                 <thead>
                     <tr>
@@ -79,11 +98,198 @@
                     </tr>
                 </thead>
                 <tbody id="medicineTableBody">
-                    
                 </tbody>
             </table>
         </div>
+        
     </section>
-   
+    <script>
+        const API_URL = "http://localhost:3000/api/products";
+const token = localStorage.getItem('token');
+
+const searchInput = document.getElementById("searchInput");
+const sortBySelect = document.getElementById("sortBy");
+const sortTypeSelect = document.getElementById("sortType");
+
+document.addEventListener("DOMContentLoaded", () => {
+    fetchMedicines(); 
+    searchInput.addEventListener("input", fetchMedicines);
+    sortBySelect.addEventListener("change", fetchMedicines);
+    sortTypeSelect.addEventListener("change", fetchMedicines);
+});
+
+async function fetchMedicines() {
+    const sortBy = sortBySelect.value;
+    const sortType = sortTypeSelect.value;
+    const search = searchInput.value.trim();
+
+    try {
+        const response = await fetch(`${API_URL}?sortBy=${sortBy}&sortType=${sortType}&search=${encodeURIComponent(search)}`, {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch");
+
+        const medicines = await response.json();
+        renderMedicines(medicines);
+    } catch (error) {
+        console.error("Error fetching medicines:", error);
+    }
+}
+
+        
+
+        function renderMedicines(medicines) {
+            const tbody = document.getElementById("medicineTableBody");
+            tbody.innerHTML = "";
+
+            medicines.forEach(med => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${med.name}</td>
+                    <td>${med.company}</td>
+                    <td>${new Date(med.expiryDate).toISOString().split("T")[0]}</td>
+                    <td>$${med.price}</td>
+                    <td>${med.stock}</td>
+                    <td>
+                        <button class="edit-btn" onclick="loadMedicine('${med._id}')">
+                            <i class="uil uil-edit"></i>
+                        </button>
+                        <button class="delete-btn"onclick="deleteMedicine('${med._id}')">
+                            <i class="uil uil-trash-alt"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        document.getElementById("medicineForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const id = document.getElementById("medId").value;
+            const medicine = {
+                name: document.getElementById("medName").value,
+                company: document.getElementById("medCompany").value,
+                expiryDate: document.getElementById("medExpiry").value,
+                price: document.getElementById("medPrice").value,
+                stock: document.getElementById("stock").value
+            };
+
+            if (id) {
+                await updateMedicine(id, medicine);
+            } else {
+                await addMedicine(medicine);
+            }
+        });
+
+        async function addMedicine(medicine) {
+            try {
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" ,  "Authorization": `Bearer ${token}`
+                },
+                    body: JSON.stringify(medicine)
+                });
+
+                if (response.ok) {
+                    fetchMedicines();
+                    resetForm();
+                }
+            } catch (error) {
+                console.error("Error adding medicine:", error);
+            }
+        }
+
+        async function loadMedicine(id) {
+            try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    }
+            })
+                const med = await response.json();
+
+                document.getElementById("medId").value = med._id;
+                document.getElementById("medName").value = med.name;
+                document.getElementById("medCompany").value = med.company;
+                document.getElementById("medExpiry").value = new Date(med.expiryDate).toISOString().split("T")[0];
+                document.getElementById("medPrice").value = med.price;
+                document.getElementById("stock").value = med.stock;
+
+                document.getElementById("formTitle").textContent = "Edit Medicine";
+                document.getElementById("cancelEdit").style.display = "block";
+            } catch (error) {
+                console.error("Error loading medicine:", error);
+            }
+        }
+
+        async function updateMedicine(id, medicine) {
+            try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" , "Authorization": `Bearer ${token}`
+                },
+                    body: JSON.stringify(medicine)
+                });
+
+                if (response.ok) {
+                    fetchMedicines();
+                    resetForm();
+                }
+            } catch (error) {
+                console.error("Error updating medicine:", error);
+            }
+        }
+
+        async function deleteMedicine(id) {
+            if (confirm("Are you sure you want to delete this medicine?")) {
+                try {
+                    const response = await fetch(`${API_URL}/${id}`, {
+                        method: "DELETE",
+                        headers: { "Content-Type": "application/json" , "Authorization": `Bearer ${token}`}
+                    });
+
+                    if (response.ok) {
+                        fetchMedicines();
+                    }
+                } catch (error) {
+                    console.error("Error deleting medicine:", error);
+                }
+            }
+        }
+
+        function resetForm() {
+            document.getElementById("medicineForm").reset();
+            document.getElementById("medId").value = "";
+            document.getElementById("formTitle").textContent = "Add New Medicine";
+            document.getElementById("cancelEdit").style.display = "none";
+        }
+
+        function searchMedicine() {
+            let filter = document.getElementById("searchInput").value.toUpperCase();
+            let rows = document.getElementById("medicineTableBody").getElementsByTagName("tr");
+
+            for (let i = 0; i < rows.length; i++) {
+                let nameCell = rows[i].getElementsByTagName("td")[0];
+                let companyCell = rows[i].getElementsByTagName("td")[1];
+
+                if (nameCell || companyCell) {
+                    let nameText = nameCell.textContent || nameCell.innerText;
+                    let companyText = companyCell.textContent || companyCell.innerText;
+
+                    if (nameText.toUpperCase().indexOf(filter) > -1 || companyText.toUpperCase().indexOf(filter) > -1) {
+                        rows[i].style.display = "";
+                    } else {
+                        rows[i].style.display = "none";
+                    }
+                }
+            }
+        }
+    </script>
 </body>
 </html>
