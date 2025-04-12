@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Products</title>
-    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
 
 
@@ -46,7 +46,43 @@
      </div>
     </nav>
     <section class="dashboard">
-        Products Page
+        <div class="search-box">
+            <i class="uil uil-search"></i>
+            <input type="text" id="searchInput" placeholder="Search here..." onkeyup="searchMedicine()">
+        </div>
+
+        <div class="form-container">
+            <h2 id="formTitle">Add New Product</h2>
+            <form id="medicineForm">
+                <input type="hidden" id="medId">
+                <input type="text" id="medName" placeholder="Product Name" required>
+                <input type="text" id="medCompany" placeholder="Company Name" required>
+                <input type="date" id="medExpiry" required>
+                <input type="number" id="medPrice" placeholder="Price" required>
+                <input type="number" id="stock" placeholder="Stock" required>
+                <button type="submit">Save </button>
+                <button type="button" id="cancelEdit" style="display: none;" onclick="resetForm()">Cancel</button>
+            </form>
+        </div>
+
+        <div class="table-container">
+            <h2>Inventory</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Company</th>
+                        <th>Expiry</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="medicineTableBody">
+                    
+                </tbody>
+            </table>
+        </div>
     </section>
    
 </body>
