@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,12 +9,14 @@
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
 
 </head>
+
 <body>
-    
+
     <nav>
         <div class="logo-name">
             <div class="logo-image">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS7qS1289n56ZLX24P_mBwRZv2LwVZemELQRg&s" alt="">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS7qS1289n56ZLX24P_mBwRZv2LwVZemELQRg&s"
+                    alt="">
             </div>
             <span class="logo_name">Oxygen Pharmacy</span>
         </div>
@@ -22,25 +25,25 @@
             <ul class="nav-links">
                 <li>
                     <a href="dashboard.html">
-                    <i class="uil uil-tachometer-fast-alt"></i>
-                    <span class="link-name">Dashboard</span>
-                </a>
-            </li>
+                        <i class="uil uil-tachometer-fast-alt"></i>
+                        <span class="link-name">Dashboard</span>
+                    </a>
+                </li>
                 <li><a href="sales.html">
-                    <i class="uil uil-shopping-cart"></i>
-                    <span class="link-name">Sales</span>
-                </a></li>
+                        <i class="uil uil-shopping-cart"></i>
+                        <span class="link-name">Sales</span>
+                    </a></li>
                 <li><a href="Products.html">
-                    <i class="uil uil-medkit"></i>
-                    <span class="link-name">Products</span>
-                </a></li>
+                        <i class="uil uil-medkit"></i>
+                        <span class="link-name">Products</span>
+                    </a></li>
             </ul>
 
             <ul class="logout-mode">
                 <li><a href="login.html">
-                    <i class="uil uil-signout"></i>
-                    <span class="link-name">Logout</span>
-                </a></li>
+                        <i class="uil uil-signout"></i>
+                        <span class="link-name">Logout</span>
+                    </a></li>
             </ul>
         </div>
     </nav>
@@ -52,11 +55,11 @@
 
                 <select id="medicineDropdown" required>
                     <option value="">Select Product</option>
-                   
+
                 </select>
 
                 <input type="number" id="medQuantity" placeholder="Quantity" required>
-                <input type="number" id="medPrice" placeholder="Total Price" required>
+                <input type="number" disabled id="medPrice" placeholder="Total Price" required>
                 <button type="submit">Save Sale</button>
             </form>
         </div>
@@ -73,11 +76,182 @@
                     </tr>
                 </thead>
                 <tbody id="medicineTable">
-                    
+
                 </tbody>
             </table>
         </div>
     </section>
+
+
+    <script>
+        let saleID = null;
+        const API_URL = "http://localhost:3000/api";
+        let medicinesList = [];
+        const token = localStorage.getItem('token');
     
+        const dropdown = document.getElementById("medicineDropdown");
+        const quantityInput = document.getElementById("medQuantity");
+        const priceInput = document.getElementById("medPrice");
+        const form = document.getElementById("medicineForm");
+    
+        // Fetch products for dropdown
+        async function fetchMedicinesDropdown() {
+            const response = await fetch(`${API_URL}/products`, {
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                }
+            });
+    
+            medicinesList = await response.json();
+            dropdown.innerHTML = '<option value="">Select Product</option>';
+    
+            medicinesList.forEach(med => {
+                dropdown.innerHTML += `<option value="${med._id}">${med.name}</option>`;
+            });
+        }
+    
+        // Fetch sales and render table
+        async function fetchMedicinesTable() {
+            const response = await fetch(`${API_URL}/sales`, {
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                }
+            });
+    
+            const medicines = await response.json();
+            const tableBody = document.getElementById("medicineTable");
+            tableBody.innerHTML = "";
+    
+            medicines.forEach(med => {
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${med.product?.name}</td>
+                        <td>${med.quantity}</td>
+                        <td>$${med.totalPrice.toFixed(2)}</td>
+                        <td>
+                            <button class="edit-btn" onclick="loadMedicine('${med._id}')">
+                                <i class="uil uil-edit"></i>
+                            </button>
+                            <button class="delete-btn" onclick="deleteMedicine('${med._id}')">
+                                <i class="uil uil-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+    
+        // Calculate price
+        function calculatePrice() {
+            const productId = dropdown.value;
+            const quantity = Number(quantityInput.value);
+    
+            if (!productId || quantity <= 0) {
+                priceInput.value = "";
+                return;
+            }
+    
+            const selectedProduct = medicinesList.find(m => m._id === productId);
+            if (selectedProduct) {
+                const total = selectedProduct.price * quantity;
+                priceInput.value = total.toFixed(2); 
+            }
+        }
+    
+        // Event Listeners for live price calculation
+        dropdown.addEventListener("change", calculatePrice);
+        quantityInput.addEventListener("input", calculatePrice);
+    
+        // Add or update sale
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+    
+            const selectedMedId = dropdown.value;
+            const quantity = Number(quantityInput.value);
+            const totalPrice = Number(priceInput.value);
+    
+            if (!selectedMedId || quantity <= 0 || totalPrice <= 0) {
+                alert("Please select product and enter a valid quantity.");
+                return;
+            }
+    
+            const medicineData = {
+                product: selectedMedId,
+                quantity,
+                totalPrice
+            };
+    
+            if (saleID) {
+                const res = await fetch(`${API_URL}/sales/${saleID}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify(medicineData)
+                });
+    
+                const data = await res.json();
+                alert(data?.message || "Sale updated successfully!");
+                saleID = null;
+            } else {
+                const res = await fetch(`${API_URL}/sales`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify(medicineData)
+                });
+    
+                const data = await res.json();
+                alert(data?.message || "Sale added successfully!");
+            }
+    
+            form.reset();
+            document.getElementById("form-title").innerText = "Add New Sale";
+            fetchMedicinesTable();
+        });
+    
+        // Load existing sale for editing
+        async function loadMedicine(medId) {
+            const response = await fetch(`${API_URL}/sales/${medId}`, {
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                }
+            });
+    
+            const med = await response.json();
+            saleID = med?._id;
+    
+            dropdown.value = med.product._id;
+            quantityInput.value = med.quantity;
+            priceInput.value = med.totalPrice.toFixed(2);
+            document.getElementById("form-title").innerText = "Edit Sale";
+        }
+    
+        // Delete sale
+        async function deleteMedicine(medId) {
+            if (confirm("Are you sure you want to delete this sale?")) {
+                await fetch(`${API_URL}/sales/${medId}`, {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+                fetchMedicinesTable();
+            }
+        }
+    
+        fetchMedicinesDropdown();
+        fetchMedicinesTable();
+    </script>
+    
+
 </body>
+
 </html>
