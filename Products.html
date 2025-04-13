@@ -57,7 +57,7 @@
                 <input type="hidden" id="medId">
                 <input type="text" id="medName" placeholder="Product Name" required>
                 <input type="text" id="medCompany" placeholder="Company Name" required>
-                <input type="date" id="medExpiry" required>
+                <input type="date" id="medExpiry" required onfocus="this.min = new Date().toISOString().split('T')[0]">
                 <input type="number" id="medPrice" placeholder="Price" required>
                 <input type="number" id="stock" placeholder="Stock" required>
                 <button type="submit">Save </button>
@@ -91,6 +91,7 @@
                     <tr>
                         <th>Name</th>
                         <th>Company</th>
+                        <th>Added Date</th>
                         <th>Expiry</th>
                         <th>Price</th>
                         <th>Stock</th>
@@ -155,6 +156,7 @@ async function fetchMedicines() {
                 row.innerHTML = `
                     <td>${med.name}</td>
                     <td>${med.company}</td>
+                    <td>${new Date(med.createdAt).toISOString().split("T")[0]}</td>
                     <td>${new Date(med.expiryDate).toISOString().split("T")[0]}</td>
                     <td>$${med.price}</td>
                     <td>${med.stock}</td>
