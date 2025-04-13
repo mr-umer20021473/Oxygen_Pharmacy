@@ -74,6 +74,7 @@
                         <th>Product Name</th>
                         <th>Quantity</th>
                         <th>Total Price</th>
+                        <th>Sell Date</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -136,6 +137,8 @@
                         <td>${med.product?.name}</td>
                         <td>${med.quantity}</td>
                         <td>$${med.totalPrice.toFixed(2)}</td>
+                        <td>${new Date(med.createdAt).toISOString().split("T")[0]}</td>
+
                         <td>
                             <button class="edit-btn" onclick="loadMedicine('${med._id}')">
                                 <i class="uil uil-edit"></i>
